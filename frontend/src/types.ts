@@ -1,0 +1,2 @@
+export type Risk = { risk_level: string; risk_score: number; risk_reason?: string; reason?: string[]; suggestion: string | string[] }
+export type Customer = { id: string; customer_name: string; industry: string; address: string; contact_name: string; phone: string; owner: string; status: string; first_cooperation_date: string; next_service_date: string; health_score: number; equipment: Array<Record<string, any>>; contracts: Array<Record<string, any>>; service_records: Array<Record<string, any>>; payments: Array<Record<string, any>>; customer_risks: Risk[] }
