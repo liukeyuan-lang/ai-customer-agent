@@ -1,20 +1,53 @@
-# 空香 AI 客户经营 Agent SaaS MVP
+# 空香 AI 客户经营 Agent
 
-## 已实现
+> **[打开在线作品集演示](https://liukeyuan-lang.github.io/ai-customer-agent/)**
 
-- Supabase Auth 邮箱验证码登录（首次验证自动注册）
-- Supabase PostgreSQL 建表迁移、RLS、用户 Profile 触发器
-- 客户、设备、合同、服务、付款、风险、提醒数据模型
-- FastAPI JWT 验证和 Supabase API 数据访问
-- AI Agent 工作台、客户资产中心、客户360详情、AI 对话
-- Customer Agent、Risk Agent、Report Agent
-- 每日 08:00 主动巡检任务
-- Qdrant 向量库客户端与知识文档元数据关联
-- 20客户、50设备、20合同、100服务记录初始化函数
+面向客户经营和售后履约的 AI Agent 概念项目，包含经营看板、客户资产、客户 360 详情、风险分析、经营问答和报告导出。
 
-## 配置
+## 在线演示
 
-复制 `.env.example` 为 `.env`，填写 Supabase 和 Qdrant 配置。前端只能使用 anon key，service role key 只能留在后端。
+GitHub Pages 上的版本是无登录、无后端的纯静态作品集演示：
+
+- 打开即用，不需要 Supabase、FastAPI、Qdrant 或任何环境变量。
+- 客户、联系方式和经营数据均为专门编写的虚构样例，不包含真实用户数据。
+- 交互完全在浏览器内运行；经营 Agent 使用可复现的演示回答，不请求网络 API。
+- 支持客户搜索、详情浏览、示例问答以及 PPT / Excel 本地导出。
+- 使用 hash 路由，可在 `/ai-customer-agent/` 子路径下稳定刷新和分享具体页面。
+
+### 本地运行静态演示
+
+```bash
+cd frontend
+npm ci
+npm run dev:demo
+```
+
+访问 `http://127.0.0.1:5174/ai-customer-agent/`。
+
+生产构建验证：
+
+```bash
+cd frontend
+npm run build:demo
+```
+
+每次推送到 `main` 后，[GitHub Actions](.github/workflows/deploy-pages.yml) 会自动构建并发布 `frontend/dist` 到 GitHub Pages。工作流权限仅包含读取仓库内容和发布 Pages 所需的权限。
+
+## 完整系统架构
+
+仓库同时保留了需要用户自行配置的完整应用架构：
+
+- React + Vite 前端
+- Supabase Auth / PostgreSQL / RLS
+- FastAPI 业务 API 和多意图 Agent Router
+- Qdrant 知识库客户端
+- 客户、设备、合同、服务、付款、风险和提醒数据模型
+
+该部分与 GitHub Pages 静态演示互相独立。
+
+## 完整系统本地配置
+
+复制 `.env.example` 为 `.env`，填写自己的 Supabase 和 Qdrant 配置。前端只能使用 anon key，service role key 只能留在后端，不得提交到仓库。
 
 在 Supabase SQL Editor 依次执行：
 
@@ -23,35 +56,17 @@
 3. `supabase/migrations/003_customer_name_unique.sql`
 4. `supabase/migrations/004_atomic_customer_import.sql`
 
-### 邮箱验证码模板
-
-在 Supabase Dashboard 的 **Authentication → Email Templates → Magic Link** 中，将邮件正文里的确认链接改为验证码变量，例如：
-
-```html
-<h2>登录验证码</h2>
-<p>你的验证码是：<strong>{{ .Token }}</strong></p>
-<p>验证码仅用于本次登录，请勿转发。</p>
-```
-
-前端已使用 `signInWithOtp` 和 `verifyOtp` 完成发送及校验；邮件模板必须使用 `{{ .Token }}`，否则 Supabase 仍会发送网页链接。
-
-验证登录后，可在 SQL/RPC 中以当前用户执行：
-
-```sql
-select public.seed_demo_data(auth.uid());
-```
-
-## 运行前端
+### 运行前端（完整系统模式）
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
-访问 `http://127.0.0.1:5174`。
+如需连接真实服务，配置 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY` 和 `VITE_API_URL`；不要设置 `VITE_DEMO_MODE=true`。
 
-## 运行后端
+### 运行后端
 
 ```bash
 cd backend
@@ -60,18 +75,12 @@ python -m venv .venv
 .venv/bin/python -m uvicorn app.main:app --reload --port 8010
 ```
 
-API 文档：`http://127.0.0.1:8010/docs`。本机 `8000` 端口已有其他服务，因此本项目使用 `8010`。
+API 文档：`http://127.0.0.1:8010/docs`。
 
-## 运行 Qdrant
+### 运行 Qdrant
 
-```powershell
+```bash
 docker compose up -d qdrant
 ```
 
-Qdrant 地址：`http://127.0.0.1:6333`。
-
-## 当前验证状态
-
-- React TypeScript 生产构建通过。
-- Python 后端全部模块语法编译通过。
-- 真实 Supabase 建表、Auth、RLS 和数据读取需要填写用户自己的 Supabase 项目凭证后验证。
+Qdrant 默认地址：`http://127.0.0.1:6333`。

@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { DEMO_MODE, demoApi } from './demo'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8010'
 const CACHE_TTL_MS = 60_000
@@ -29,6 +30,8 @@ async function request<T>(path: string, options: RequestInit, token: string): Pr
 }
 
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
+  if (DEMO_MODE) return demoApi<T>(path, options)
+
   const { data, error: sessionError } = await supabase.auth.getSession()
   if (sessionError) throw new ApiError('登录状态读取失败，请退出后重新登录。', 401, 'SESSION_ERROR')
   const token = data.session?.access_token
